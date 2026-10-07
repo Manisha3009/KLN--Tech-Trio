@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Tech Trio – Master Dashboard{% endblock %}
+{% block content %}
+<header class="page-header">
+  <div><span class="eyebrow">MASTER ANALYTICS</span><h1>Tech Trio – Master Student Performance Dashboard</h1><p>Dynamic college-first analytics powered directly by the Excel dataset.</p></div>
+</header>
+
+<section id="search" class="glass-panel mb-4">
+<form method="get" class="row g-2 align-items-end">
+  <div class="col-lg-4"><label>Global Search</label><input class="form-control" name="q" value="{{ request.args.get('q','') }}" placeholder="Student, ID, college, batch, mentor, department"></div>
+  <div class="col-md-2"><label>College</label><select class="form-select" name="college"><option value="">All</option>{% for x in filters.colleges %}<option {% if request.args.get('college')==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></div>
+  <div class="col-md-2"><label>Department</label><select class="form-select" name="department"><option value="">All</option>{% for x in filters.departments %}<option {% if request.args.get('department')==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></div>
+  <div class="col-md-2"><label>Academic Year</label><select class="form-select" name="academic_year"><option value="">All</option>{% for x in filters.years %}<option {% if request.args.get('academic_year')==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></div>
+  <div class="col-md-2"><label>Batch</label><select class="form-select" name="batch"><option value="">All</option>{% for x in filters.batches %}<option {% if request.args.get('batch')==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><label>Mentor</label><select class="form-select" name="mentor"><option value="">All</option>{% for x in filters.mentors %}<option {% if request.args.get('mentor')==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><label>Performance</label><select class="form-select" name="performance"><option value="">All</option>{% for x in filters.performance %}<option {% if request.args.get('performance')==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><button class="btn btn-primary w-100"><i class="bi bi-funnel"></i> Apply</button></div>
+  <div class="col-md-3"><a class="btn btn-outline-light w-100" href="{{ url_for('dashboard') }}">Reset</a></div>
+</form>
+</section>
+
+<section class="kpi-grid mb-4">
+{% set cards=[('Students',kpis.students,'bi-people'),('Colleges',kpis.colleges,'bi-building'),('Batches',kpis.batches,'bi-collection'),('Mentors',kpis.mentors,'bi-person-badge'),('Departments',kpis.departments,'bi-diagram-3'),('Overall Avg',kpis.overall_average|string+'%','bi-speedometer2'),('Pass',kpis.pass_percentage|string+'%','bi-check-circle'),('At Risk',kpis.at_risk,'bi-exclamation-triangle')] %}
+{% for label,value,icon in cards %}<div class="kpi-card"><i class="bi {{ icon }}"></i><div><span>{{ label }}</span><strong>{{ value }}</strong></div></div>{% endfor %}
+</section>
+
+{% if results %}<section class="glass-panel mb-4"><h2>Search Results</h2>{% include '_student_table.html' with context %}</section>{% endif %}
+
+<section id="college-overview" class="mb-4">
+<div class="section-heading"><div><span class="eyebrow">PRIMARY VIEW</span><h2>College Performance Overview</h2></div><span class="pill">{{ colleges|length }} colleges detected dynamically</span></div>
+<div class="college-grid">
+{% for c in colleges %}
+<a class="college-card" href="{{ url_for('college', college_name=c.college) }}">
+  <div class="college-icon"><i class="bi bi-buildings-fill"></i></div><h3>{{ c.college }}</h3>
+  <div class="mini-grid"><span>Students <b>{{ c.students }}</b></span><span>Batches <b>{{ c.batches }}</b></span><span>Average <b>{{ c.average }}%</b></span><span>Top <b>{{ c.top }}</b></span><span>At Risk <b>{{ c.risk }}</b></span></div>
+  <div class="open-link">Open analytics <i class="bi bi-arrow-up-right"></i></div>
+</a>
+{% endfor %}
+</div>
+</section>
+
+<section id="charts" class="chart-grid mb-4">
+  <div class="glass-panel"><h3>Students by College</h3><div id="studentsByCollege"></div></div>
+  <div class="glass-panel"><h3>Overall Average by College</h3><div id="avgByCollege"></div></div>
+  <div class="glass-panel"><h3>Pass Percentage by College</h3><div id="passByCollege"></div></div>
+  <div class="glass-panel"><h3>Performance Distribution</h3><div id="performanceDist"></div></div>
+  <div class="glass-panel"><h3>Students by Batch</h3><div id="studentsByBatch"></div></div>
+  <div class="glass-panel"><h3>Students by Department</h3><div id="studentsByDept"></div></div>
+  <div class="glass-panel"><h3>Subject Performance Comparison</h3><div id="subjectOverall"></div></div>
+  <div class="glass-panel"><h3>At-Risk Students by College</h3><div id="riskByCollege"></div></div>
+</section>
+
+<section id="college-comparison" class="glass-panel"><div class="section-heading"><h2>College Comparison</h2><span class="pill">Sortable</span></div>
+<div class="table-responsive"><table class="table data-table"><thead><tr><th>College</th><th>Students</th><th>Batches</th><th>Mentors</th><th>C++ Avg</th><th>Java Avg</th><th>Python Avg</th><th>Overall Avg</th><th>Pass %</th><th>Excellent</th><th>Good</th><th>Average</th><th>Low</th></tr></thead><tbody>
+{% for r in comparison %}<tr><td><a href="{{ url_for('college', college_name=r.college) }}">{{ r.college }}</a></td><td>{{ r.students }}</td><td>{{ r.batches }}</td><td>{{ r.mentors }}</td><td>{{ r.cpp_avg|score }}</td><td>{{ r.java_avg|score }}</td><td>{{ r.python_avg|score }}</td><td>{{ r.overall_avg|score }}</td><td>{{ r.pass_pct }}</td><td>{{ r.excellent }}</td><td>{{ r.good }}</td><td>{{ r.average }}</td><td>{{ r.low }}</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}
+{% block scripts %}<script>window.masterCharts={{ chart_data|tojson }};</script>{% endblock %}

@@ -1,0 +1,4 @@
+{% extends 'base.html' %}{% block title %}{{ college }} – {{ title }}{% endblock %}{% block content %}
+<div class="breadcrumb-lite"><a href="{{ url_for('dashboard') }}">Master</a><i class="bi bi-chevron-right"></i><a href="{{ url_for('college', college_name=college) }}">{{ college }}</a><i class="bi bi-chevron-right"></i>{{ title }}</div>
+<header class="page-header"><div><span class="eyebrow">PERFORMANCE DRILL-DOWN</span><h1>{{ college }} – {{ title }}</h1><p>{{ students|length }} student records</p></div></header>
+<section class="glass-panel">{% include '_student_table.html' %}</section>{% endblock %}

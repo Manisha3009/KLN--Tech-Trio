@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}{{ summary.college }} Analytics{% endblock %}
+{% block content %}
+<div class="breadcrumb-lite"><a href="{{ url_for('dashboard') }}">Master Dashboard</a><i class="bi bi-chevron-right"></i>{{ summary.college }}</div>
+<header class="page-header"><div><span class="eyebrow">COLLEGE ANALYTICS</span><h1>{{ summary.college }} – Student Performance Analytics</h1><p>Drill into performance, subjects, batches, mentors, departments and students.</p></div></header>
+<section class="kpi-grid mb-4">
+{% set cards=[('Students',summary.students,'bi-people'),('Batches',summary.batches,'bi-collection'),('Departments',summary.departments,'bi-diagram-3'),('Mentors',summary.mentors,'bi-person-badge'),('C++ Avg',summary.cpp_avg|score,'bi-code-slash'),('Java Avg',summary.java_avg|score,'bi-cup-hot'),('Python Avg',summary.python_avg|score,'bi-filetype-py'),('Overall Avg',summary.overall_avg|score,'bi-speedometer2'),('Pass %',summary.pass_pct|string+'%','bi-check-circle'),('At Risk',summary.at_risk,'bi-exclamation-triangle'),('Top Performer',summary.top_performer,'bi-trophy')] %}
+{% for label,value,icon in cards %}<div class="kpi-card"><i class="bi {{ icon }}"></i><div><span>{{ label }}</span><strong class="{{ 'small-value' if label=='Top Performer' else '' }}">{{ value }}</strong></div></div>{% endfor %}
+</section>
+
+<section class="performance-grid mb-4">
+{% for label,count in dist.items() %}<a class="performance-card pc-{{ label|lower }}" href="{{ url_for('college_performance', college_name=summary.college, level=label|lower) }}"><span>{{ label }}</span><strong>{{ count }}</strong><small>View students →</small></a>{% endfor %}
+</section>
+
+<section class="chart-grid mb-4"><div class="glass-panel"><h3>Performance Distribution</h3><div id="collegePerf"></div></div><div class="glass-panel"><h3>Subject Comparison</h3><div id="subjectCompare"></div></div><div class="glass-panel"><h3>Batch-wise Performance</h3><div id="batchPerf"></div></div><div class="glass-panel"><h3>Department Performance</h3><div id="deptPerf"></div></div></section>
+
+<section class="glass-panel mb-4"><h2>Batches</h2><div class="college-grid">{% for b in batches %}<a class="college-card compact" href="{{ url_for('batch', college_name=summary.college, batch_name=b.batch) }}"><h3>{{ b.batch }}</h3><div class="mini-grid"><span>Students <b>{{ b.students }}</b></span><span>Average <b>{{ b.average }}%</b></span></div><div class="open-link">Open batch <i class="bi bi-arrow-right"></i></div></a>{% endfor %}</div></section>
+
+<section class="glass-panel mb-4"><h2>Mentor Analytics</h2><div class="table-responsive"><table class="table data-table"><thead><tr><th>Mentor</th><th>Subject</th><th>Students</th><th>Batches</th><th>Average</th><th>Pass %</th><th>At Risk</th></tr></thead><tbody>{% for m in mentors %}<tr><td><a href="{{ url_for('mentor', mentor_name=m.mentor) }}">{{ m.mentor }}</a></td><td>{{ m.subject }}</td><td>{{ m.students }}</td><td>{{ m.batches }}</td><td>{{ m.average|score }}</td><td>{{ m.pass_pct }}</td><td>{{ m.at_risk }}</td></tr>{% endfor %}</tbody></table></div></section>
+
+<section class="glass-panel mb-4"><h2>Department-wise Performance</h2><div class="table-responsive"><table class="table data-table"><thead><tr><th>Department</th><th>Students</th><th>Overall Avg</th><th>Pass %</th><th>Excellent</th><th>Low</th></tr></thead><tbody>{% for d in departments %}<tr><td>{{ d.department }}</td><td>{{ d.students }}</td><td>{{ d.average }}</td><td>{{ d.pass_pct }}</td><td>{{ d.top }}</td><td>{{ d.low }}</td></tr>{% endfor %}</tbody></table></div></section>
+
+<section class="glass-panel mb-4"><h2>Year-wise Analytics</h2><div class="table-responsive"><table class="table data-table"><thead><tr><th>Year</th><th>Students</th><th>Average</th><th>Pass %</th><th>Excellent</th><th>At Risk</th></tr></thead><tbody>{% for y in years %}<tr><td>{{ y.year }}</td><td>{{ y.students }}</td><td>{{ y.average }}</td><td>{{ y.pass_pct }}</td><td>{{ y.top }}</td><td>{{ y.risk }}</td></tr>{% endfor %}</tbody></table></div></section>
+
+<div class="two-col mb-4"><section class="glass-panel"><h2>Overall Top 10 Students</h2>{% set students=top %}{% include '_student_table.html' %}</section><section class="glass-panel"><h2>Bottom 10 Students</h2>{% set students=bottom %}{% include '_student_table.html' %}</section></div>
+<div class="two-col mb-4"><section class="glass-panel"><h2>Average Performing Students</h2>{% set students=average_students %}{% include '_student_table.html' %}</section><section class="glass-panel"><h2>At-Risk Students</h2>{% set students=risk_students %}{% include '_student_table.html' %}</section></div>
+
+<section class="glass-panel"><h2>Subject Performance</h2><div class="subject-grid">{% for key,s in subjects.items() %}<div class="subject-card"><h3>{{ s.label }}</h3>{% if s.has_data %}<div class="subject-stats"><span>Average <b>{{ s.average|score }}</b></span><span>Highest <b>{{ s.highest|score }}</b></span><span>Lowest <b>{{ s.lowest|score }}</b></span><span>Pass <b>{{ s.pass_pct }}%</b></span></div>{% else %}<p class="muted">Marks not available yet. Status is retained in the source dataset.</p>{% endif %}</div>{% endfor %}</div>
+{% for key,s in subjects.items() %}{% if s.has_data %}<div class="two-col subject-detail"><div><h3>{{ s.label }} Top 10</h3>{% set students=s.top %}{% include '_student_table.html' %}</div><div><h3>{{ s.label }} Bottom 10</h3>{% set students=s.bottom %}{% include '_student_table.html' %}</div></div>{% endif %}{% endfor %}
+</section>
+{% endblock %}
+{% block scripts %}<script>window.collegeCharts={{ chart_data|tojson }};</script>{% endblock %}

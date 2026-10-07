@@ -1,0 +1,5 @@
+{% extends 'base.html' %}{% block title %}{{ mentor }} Mentor Analytics{% endblock %}{% block content %}
+<div class="breadcrumb-lite"><a href="{{ url_for('dashboard') }}">Master Dashboard</a><i class="bi bi-chevron-right"></i>{{ mentor }}</div>
+<header class="page-header"><div><span class="eyebrow">MENTOR ANALYTICS</span><h1>{{ mentor }}</h1><p>Subjects handled: {{ subjects|join(', ') }}</p></div></header>
+<section class="kpi-grid mb-4">{% set cards=[('Students',kpis.students,'bi-people'),('Colleges',kpis.colleges,'bi-building'),('Batches',kpis.batches,'bi-collection'),('Overall Avg',kpis.overall_average|string+'%','bi-speedometer2'),('Pass %',kpis.pass_percentage|string+'%','bi-check-circle'),('At Risk',kpis.at_risk,'bi-exclamation-triangle')] %}{% for label,value,icon in cards %}<div class="kpi-card"><i class="bi {{ icon }}"></i><div><span>{{ label }}</span><strong>{{ value }}</strong></div></div>{% endfor %}</section>
+<section class="glass-panel"><h2>Students Handled</h2>{% include '_student_table.html' %}</section>{% endblock %}
